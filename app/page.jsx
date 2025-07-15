@@ -595,22 +595,22 @@ export default function HomePage() {
         "mascota"
       )}
 
-      {/* Icono flotante de carrito */}
+              {/* Icono flotante carrito */}
       <div
-        style={iconoCarrito}
         onClick={() => setModalCarritoAbierto(true)}
-        aria-label="Abrir carrito de compras"
+        style={iconoCarrito}
+        aria-label={`Abrir carrito de compras con ${carrito.reduce((total, item) => total + item.cantidad, 0)} productos`}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === "Enter") setModalCarritoAbierto(true);
+          if (e.key === "Enter" || e.key === " ") setModalCarritoAbierto(true);
         }}
       >
         <FaShoppingCart size={28} />
-        {carrito.length > 0 && (
-          <div style={contadorEstilo} aria-live="polite">
-            {carrito.length}
-          </div>
+        {carrito.reduce((total, item) => total + item.cantidad, 0) > 0 && (
+          <span style={contadorEstilo} aria-live="polite">
+            {carrito.reduce((total, item) => total + item.cantidad, 0)}
+          </span>
         )}
       </div>
 
