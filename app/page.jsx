@@ -1,11 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
 import GroomingSlider from "../components/GroomingSlider";
 import { FaShoppingCart, FaTimes } from "react-icons/fa";
+
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay } from "swiper/modules";
+import "swiper/css";
 
 export default function HomePage() {
   const [comidaProductos, setComidaProductos] = useState([]);
@@ -29,28 +33,12 @@ export default function HomePage() {
     mascota: false,
   });
 
-  // Para los indicadores de paginación horizontal en móvil (productos)
-  const refsSecciones = {
-    comida: useRef(null),
-    medicamentos: useRef(null),
-    jardineria: useRef(null),
-    mascota: useRef(null),
-  };
-  const [indiceVisible, setIndiceVisible] = useState({
-    comida: 0,
-    medicamentos: 0,
-    jardineria: 0,
-    mascota: 0,
-  });
-
-  // Para modal producto
+  // Modal producto
   const [modalProductoAbierto, setModalProductoAbierto] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
-  // Para modal carrito
+  // Modal carrito
   const [modalCarritoAbierto, setModalCarritoAbierto] = useState(false);
-  const refCarrito = useRef(null);
-  const [indiceVisibleCarrito, setIndiceVisibleCarrito] = useState(0);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -98,48 +86,6 @@ export default function HomePage() {
   const handleRemoveFromCart = (id) => {
     setCarrito((prev) => prev.filter((p) => p.id !== id));
   };
-
-  // Para manejar scroll horizontal y actualizar el índice visible (productos)
-  const onScrollHorizontal = (key) => {
-    const contenedor = refsSecciones[key].current;
-    if (!contenedor) return;
-    const scrollLeft = contenedor.scrollLeft;
-    const width = contenedor.clientWidth;
-    const nuevoIndice = Math.round(scrollLeft / width);
-    setIndiceVisible((prev) => ({ ...prev, [key]: nuevoIndice }));
-  };
-
-  // Para scroll horizontal carrito
-  const onScrollCarrito = () => {
-    const contenedor = refCarrito.current;
-    if (!contenedor) return;
-    const scrollLeft = contenedor.scrollLeft;
-    const width = contenedor.clientWidth;
-    const nuevoIndice = Math.round(scrollLeft / width);
-    setIndiceVisibleCarrito(nuevoIndice);
-  };
-
-  // Evita bloqueo de scroll vertical cuando se hace scroll horizontal (en móvil)
-  const handleWheel = (e, ref) => {
-    if (!ref.current) return;
-    const el = ref.current;
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-      e.preventDefault();
-      el.scrollLeft += e.deltaX;
-    }
-  };
-
-  // Abrir/cerrar modales
-  const abrirModalProducto = (producto) => {
-    setProductoSeleccionado(producto);
-    setModalProductoAbierto(true);
-  };
-  const cerrarModalProducto = () => {
-    setModalProductoAbierto(false);
-    setProductoSeleccionado(null);
-  };
-  const abrirModalCarrito = () => setModalCarritoAbierto(true);
-  const cerrarModalCarrito = () => setModalCarritoAbierto(false);
 
   const cardProducto = {
     backgroundColor: "rgba(255,255,255,0.1)",
@@ -249,6 +195,7 @@ export default function HomePage() {
     0
   );
 
+  // Función renderProductos actualizada con los puntos decorativos móviles
   const renderProductos = (productos, loading, titulo, key) => {
     if (loading) {
       return (
@@ -261,8 +208,43 @@ export default function HomePage() {
             color: "white",
             borderRadius: "12px",
             margin: "2rem",
+            position: "relative",
+            overflow: "visible",
           }}
         >
+          {/* Triángulo izquierdo */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "-30px",
+              width: 0,
+              height: 0,
+              borderTop: "20px solid transparent",
+              borderBottom: "20px solid transparent",
+              borderRight: "30px solid white",
+              transform: "translateY(-50%)",
+              zIndex: 1,
+            }}
+          />
+          {/* Triángulo derecho */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: "50%",
+              right: "-30px",
+              width: 0,
+              height: 0,
+              borderTop: "20px solid transparent",
+              borderBottom: "20px solid transparent",
+              borderLeft: "30px solid white",
+              transform: "translateY(-50%)",
+              zIndex: 1,
+            }}
+          />
+
           <h2 style={{ fontSize: "2rem", marginBottom: "1rem" }}>{titulo}</h2>
           <p>Cargando productos...</p>
         </section>
@@ -280,64 +262,196 @@ export default function HomePage() {
             color: "white",
             borderRadius: "12px",
             margin: "2rem",
+            position: "relative",
+            overflow: "visible",
           }}
         >
+          {/* Triángulo izquierdo */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "-30px",
+              width: 0,
+              height: 0,
+              borderTop: "20px solid transparent",
+              borderBottom: "20px solid transparent",
+              borderRight: "30px solid #4cae33",
+              transform: "translateY(-50%)",
+              zIndex: 1,
+            }}
+          />
+          {/* Triángulo derecho */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: "50%",
+              right: "-30px",
+              width: 0,
+              height: 0,
+              borderTop: "20px solid transparent",
+              borderBottom: "20px solid transparent",
+              borderLeft: "30px solid #4cae33",
+              transform: "translateY(-50%)",
+              zIndex: 1,
+            }}
+          />
+
           <h2 style={{ fontSize: "2rem", marginBottom: "1rem" }}>{titulo}</h2>
           <p>No hay productos disponibles.</p>
         </section>
       );
     }
 
-    if (isMobile) {
-      // Mostrar 2 productos a la vez en móvil con scroll horizontal y sin dots
-      const mostrarProductos = productos;
+    // Aquí está la modificación: si es móvil, mostrar todos los productos; si no, mostrar según showAll o solo 4
+    const mostrarProductos = isMobile
+      ? productos
+      : showAll[key]
+      ? productos
+      : productos.slice(0, 4);
 
-      return (
-        <section
-          id={key}
+    return (
+      <section
+        id={key}
+        style={{
+          minHeight: "40vh",
+          padding: "2rem",
+          backgroundColor: "rgba(0, 0, 0, 0.3)",
+          color: "white",
+          borderRadius: "12px",
+          margin: "2rem",
+          position: "relative",
+          overflow: "visible",
+        }}
+      >
+        {/* Triángulo izquierdo */}
+        <div
+          aria-hidden="true"
           style={{
-            padding: "1rem",
-            backgroundColor: "rgba(0, 0, 0, 0.3)",
-            color: "white",
-            borderRadius: "12px",
-            margin: "2rem",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            position: "absolute",
+            top: "50%",
+            left: "-30px",
+            width: 0,
+            height: 0,
+            borderTop: "20px solid transparent",
+            borderBottom: "20px solid transparent",
+            borderRight: "30px solid #4cae33",
+            transform: "translateY(-50%)",
+            zIndex: 1,
           }}
-        >
-          <h2 style={{ fontSize: "2rem", marginBottom: "1rem" }}>{titulo}</h2>
+        />
+        {/* Triángulo derecho */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: "50%",
+            right: "-30px",
+            width: 0,
+            height: 0,
+            borderTop: "20px solid transparent",
+            borderBottom: "20px solid transparent",
+            borderLeft: "30px solid #4cae33",
+            transform: "translateY(-50%)",
+            zIndex: 1,
+          }}
+        />
 
+        <h2 style={{ fontSize: "2rem", marginBottom: "1rem" }}>{titulo}</h2>
+
+        {isMobile ? (
+          <Swiper
+            key={`swiper-${key}-${showAll[key]}`}
+            modules={[Autoplay]}
+            spaceBetween={20}
+            slidesPerView={1}
+            autoplay={{ delay: 60000, disableOnInteraction: false }}
+            loop={true}
+            style={{ paddingBottom: "2rem" }}
+          >
+            {mostrarProductos.map((producto) => (
+              <SwiperSlide key={producto.id}>
+                <div
+                  style={cardProducto}
+                  onClick={() =>
+                    setProductoSeleccionado(producto) || setModalProductoAbierto(true)
+                  }
+                >
+                  <Image
+                    src={producto.imagen}
+                    alt={producto.nombre}
+                    width={300}
+                    height={180}
+                    style={{ objectFit: "contain", borderRadius: "8px" }}
+                    priority
+                  />
+                  <h3 style={{ margin: "1rem 0 0.5rem 0" }}>{producto.nombre}</h3>
+                  <p
+                    style={{
+                      fontSize: "0.9rem",
+                      textAlign: "center",
+                      minHeight: "3rem",
+                    }}
+                  >
+                    {producto.descripcion}
+                  </p>
+                  <p
+                    style={{
+                      fontWeight: "700",
+                      fontSize: "1.1rem",
+                      margin: "0.5rem 0",
+                    }}
+                  >
+                    ${producto.precio.toFixed(2)}
+                  </p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(producto);
+                    }}
+                    style={{
+                      backgroundColor: "#4cae33",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "0.5rem 1rem",
+                      cursor: "pointer",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Añadir al carrito
+                  </button>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
           <div
-            ref={refsSecciones[key]}
-            onScroll={() => onScrollHorizontal(key)}
-            onWheel={(e) => handleWheel(e, refsSecciones[key])}
+            className="gridProductos"
             style={{
-              display: "flex",
-              overflowX: "auto",
-              scrollSnapType: "x mandatory",
-              gap: "1rem",
-              touchAction: "pan-x",
-              userSelect: "none",
-              width: "100%",
+              display: "grid",
+              gap: "1.5rem",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              maxHeight: showAll[key] ? "none" : "600px",
+              overflowY: showAll[key] ? "visible" : "auto",
+              transition: "max-height 0.3s ease",
             }}
-            className="no-scrollbar"
           >
             {mostrarProductos.map((producto) => (
               <div
                 key={producto.id}
-                style={{
-                  ...cardProducto,
-                  minWidth: "50%",
-                  scrollSnapAlign: "center",
-                }}
-                onClick={() => abrirModalProducto(producto)}
+                style={cardProducto}
+                onClick={() =>
+                  setProductoSeleccionado(producto) || setModalProductoAbierto(true)
+                }
               >
                 <Image
                   src={producto.imagen}
                   alt={producto.nombre}
-                  width={280}
-                  height={200}
+                  width={180}
+                  height={120}
                   style={{ objectFit: "contain", borderRadius: "8px" }}
                   priority
                 />
@@ -380,97 +494,10 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </section>
-      );
-    }
+        )}
 
-    // Desktop version (muestra sólo primeros 4 o todos si showAll es true)
-    const mostrarProductos = showAll[key]
-      ? productos
-      : productos.slice(0, 4);
-
-    return (
-      <section
-        id={key}
-        style={{
-          minHeight: "40vh",
-          padding: "2rem",
-          backgroundColor: "rgba(0, 0, 0, 0.3)",
-          color: "white",
-          borderRadius: "12px",
-          margin: "2rem",
-        }}
-      >
-        <h2 style={{ fontSize: "2rem", marginBottom: "1rem" }}>{titulo}</h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: "1.5rem",
-          }}
-        >
-          {mostrarProductos.map((producto) => (
-            <div
-              key={producto.id}
-              style={{
-                backgroundColor: "rgba(255,255,255,0.1)",
-                padding: "1rem",
-                borderRadius: "12px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-              onClick={() => abrirModalProducto(producto)}
-            >
-              <Image
-                src={producto.imagen}
-                alt={producto.nombre}
-                width={180}
-                height={120}
-                style={{ objectFit: "contain", borderRadius: "8px" }}
-                priority
-              />
-              <h3 style={{ margin: "1rem 0 0.5rem 0" }}>{producto.nombre}</h3>
-              <p
-                style={{
-                  fontSize: "0.9rem",
-                  textAlign: "center",
-                  minHeight: "3rem",
-                }}
-              >
-                {producto.descripcion}
-              </p>
-              <p
-                style={{
-                  fontWeight: "700",
-                  fontSize: "1.1rem",
-                  margin: "0.5rem 0",
-                }}
-              >
-                ${producto.precio.toFixed(2)}
-              </p>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddToCart(producto);
-                }}
-                style={{
-                  backgroundColor: "#4cae33",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  padding: "0.5rem 1rem",
-                  cursor: "pointer",
-                  fontWeight: "600",
-                }}
-              >
-                Añadir al carrito
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {productos.length > 4 && (
+        {/* Botón Ver más sólo para escritorio */}
+        {productos.length > 4 && !isMobile && (
           <div style={{ textAlign: "center", marginTop: "1rem" }}>
             <button
               onClick={() => setShowAll((prev) => ({ ...prev, [key]: !prev[key] }))}
@@ -499,6 +526,32 @@ export default function HomePage() {
             >
               {showAll[key] ? "- Ver menos" : "+ Ver más"}
             </button>
+          </div>
+        )}
+
+        {/* Puntos decorativos sólo en móvil */}
+        {isMobile && (
+          <div
+            aria-hidden="true"
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "10px",
+              marginTop: "1rem",
+            }}
+          >
+            {[...Array(5)].map((_, i) => (
+              <span
+                key={i}
+                style={{
+                  width: "10px",
+                  height: "10px",
+                  borderRadius: "50%",
+                  backgroundColor: "#4cae33",
+                  opacity: 0.7,
+                }}
+              />
+            ))}
           </div>
         )}
       </section>
@@ -542,45 +595,142 @@ export default function HomePage() {
         "mascota"
       )}
 
-      {/* Icono carrito flotante */}
-      <div style={iconoCarrito} onClick={abrirModalCarrito} aria-label="Abrir carrito">
+      {/* Icono flotante de carrito */}
+      <div
+        style={iconoCarrito}
+        onClick={() => setModalCarritoAbierto(true)}
+        aria-label="Abrir carrito de compras"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") setModalCarritoAbierto(true);
+        }}
+      >
         <FaShoppingCart size={28} />
         {carrito.length > 0 && (
-          <div style={contadorEstilo}>{carrito.reduce((acc, item) => acc + item.cantidad, 0)}</div>
+          <div style={contadorEstilo} aria-live="polite">
+            {carrito.length}
+          </div>
         )}
       </div>
 
-      {/* Modal Producto */}
-      {modalProductoAbierto && productoSeleccionado && (
-        <div style={modalFondo} onClick={cerrarModalProducto} role="dialog" aria-modal="true">
+      {/* Modal carrito */}
+      {modalCarritoAbierto && (
+        <div
+          style={modalFondo}
+          onClick={() => setModalCarritoAbierto(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalCarritoTitulo"
+        >
           <div
             style={modalContenido}
             onClick={(e) => e.stopPropagation()}
             tabIndex={-1}
           >
             <button
-              onClick={cerrarModalProducto}
               style={cerrarBtn}
-              aria-label="Cerrar ventana de producto"
+              onClick={() => setModalCarritoAbierto(false)}
+              aria-label="Cerrar carrito"
+            >
+              <FaTimes />
+            </button>
+            <h2 id="modalCarritoTitulo">Carrito de compras</h2>
+            {carrito.length === 0 ? (
+              <p>Tu carrito está vacío.</p>
+            ) : (
+              <>
+                <ul style={{ listStyle: "none", padding: 0 }}>
+                  {carrito.map((item) => (
+                    <li
+                      key={item.id}
+                      style={{
+                        marginBottom: "1rem",
+                        position: "relative",
+                        paddingRight: "2rem",
+                      }}
+                    >
+                      <strong>{item.nombre}</strong> x {item.cantidad} - $
+                      {(item.precio * item.cantidad).toFixed(2)}
+                      <button
+                        style={botonEliminar}
+                        onClick={() => handleRemoveFromCart(item.id)}
+                        aria-label={`Eliminar ${item.nombre} del carrito`}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <p
+                  style={{
+                    fontWeight: "700",
+                    fontSize: "1.2rem",
+                    marginTop: "1rem",
+                  }}
+                >
+                  Total: ${totalPrecio.toFixed(2)}
+                </p>
+                <a
+                  href={`https://wa.me/50493937936?text=${encodeURIComponent(
+                    `Hola, quiero hacer un pedido:\n${carrito
+                      .map(
+                        (item) =>
+                          `- ${item.nombre} x${item.cantidad} = $${(
+                            item.precio * item.cantidad
+                          ).toFixed(2)}`
+                      )
+                      .join("\n")}\nTotal: $${totalPrecio.toFixed(2)}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <button style={botonWhatsApp} aria-label="Enviar pedido por WhatsApp">
+                    Ordenar por WhatsApp
+                  </button>
+                </a>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal producto individual */}
+      {modalProductoAbierto && productoSeleccionado && (
+        <div
+          style={modalFondo}
+          onClick={() => setModalProductoAbierto(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modalProductoTitulo"
+        >
+          <div
+            style={modalContenido}
+            onClick={(e) => e.stopPropagation()}
+            tabIndex={-1}
+          >
+            <button
+              style={cerrarBtn}
+              onClick={() => setModalProductoAbierto(false)}
+              aria-label="Cerrar producto"
             >
               <FaTimes />
             </button>
             <Image
               src={productoSeleccionado.imagen}
               alt={productoSeleccionado.nombre}
-              width={500}
-              height={350}
+              width={400}
+              height={300}
               style={{ objectFit: "contain", borderRadius: "12px" }}
               priority
             />
-            <h2 style={{ marginTop: "1rem" }}>{productoSeleccionado.nombre}</h2>
-            <p style={{ marginTop: "0.5rem" }}>{productoSeleccionado.descripcion}</p>
+            <h2 id="modalProductoTitulo">{productoSeleccionado.nombre}</h2>
+            <p>{productoSeleccionado.descripcion}</p>
             <p
               style={{
-                marginTop: "0.5rem",
                 fontWeight: "700",
                 fontSize: "1.3rem",
-                color: "#4cae33",
+                marginTop: "0.5rem",
               }}
             >
               ${productoSeleccionado.precio.toFixed(2)}
@@ -588,10 +738,9 @@ export default function HomePage() {
             <button
               onClick={() => {
                 handleAddToCart(productoSeleccionado);
-                cerrarModalProducto();
+                setModalProductoAbierto(false);
               }}
               style={{
-                marginTop: "1rem",
                 backgroundColor: "#4cae33",
                 color: "white",
                 border: "none",
@@ -599,149 +748,15 @@ export default function HomePage() {
                 padding: "0.75rem 1.5rem",
                 cursor: "pointer",
                 fontWeight: "700",
-                fontSize: "1.1rem",
+                marginTop: "1rem",
               }}
-              aria-label={`Añadir ${productoSeleccionado.nombre} al carrito`}
+              aria-label="Añadir producto al carrito"
             >
               Añadir al carrito
             </button>
           </div>
         </div>
       )}
-
-      {/* Modal Carrito */}
-      {modalCarritoAbierto && (
-        <div
-          style={modalFondo}
-          onClick={cerrarModalCarrito}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Carrito de compras"
-        >
-          <div
-            style={{
-              ...modalContenido,
-              maxWidth: "400px",
-              maxHeight: "80vh",
-              padding: "1rem",
-              position: "relative",
-              display: "flex",
-              flexDirection: "column",
-            }}
-            onClick={(e) => e.stopPropagation()}
-            tabIndex={-1}
-          >
-            <button
-              onClick={cerrarModalCarrito}
-              style={cerrarBtn}
-              aria-label="Cerrar carrito"
-            >
-              <FaTimes />
-            </button>
-            <h2 style={{ marginBottom: "1rem" }}>Carrito de compras</h2>
-            {carrito.length === 0 ? (
-              <p>Tu carrito está vacío.</p>
-            ) : (
-              <>
-                <div
-                  ref={refCarrito}
-                  onScroll={onScrollCarrito}
-                  style={{
-                    display: "flex",
-                    overflowX: "auto",
-                    gap: "1rem",
-                    scrollSnapType: "x mandatory",
-                    paddingBottom: "1rem",
-                    userSelect: "none",
-                    touchAction: "pan-x",
-                  }}
-                  className="no-scrollbar"
-                >
-                  {carrito.map((item) => (
-                    <div
-                      key={item.id}
-                      style={{
-                        minWidth: "80%",
-                        scrollSnapAlign: "center",
-                        backgroundColor: "rgba(255,255,255,0.1)",
-                        borderRadius: "12px",
-                        padding: "1rem",
-                        position: "relative",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                      }}
-                    >
-                      <button
-                        onClick={() => handleRemoveFromCart(item.id)}
-                        style={botonEliminar}
-                        aria-label={`Eliminar ${item.nombre} del carrito`}
-                      >
-                        &times;
-                      </button>
-                      <Image
-                        src={item.imagen}
-                        alt={item.nombre}
-                        width={180}
-                        height={120}
-                        style={{ objectFit: "contain", borderRadius: "8px" }}
-                        priority
-                      />
-                      <h3>{item.nombre}</h3>
-                      <p>Cantidad: {item.cantidad}</p>
-                      <p>Precio unitario: ${item.precio.toFixed(2)}</p>
-                      <p>Subtotal: ${(item.precio * item.cantidad).toFixed(2)}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div
-                  style={{
-                    textAlign: "center",
-                    fontWeight: "700",
-                    fontSize: "1.2rem",
-                  }}
-                >
-                  Total: ${totalPrecio.toFixed(2)}
-                </div>
-
-                <button
-                  onClick={() => {
-                    const texto = carrito
-                      .map(
-                        (item) =>
-                          `${item.nombre} x${item.cantidad} = $${(
-                            item.precio * item.cantidad
-                          ).toFixed(2)}`
-                      )
-                      .join("%0A");
-                    const mensaje = `Hola, quiero hacer un pedido:%0A${texto}%0ATotal: $${totalPrecio.toFixed(
-                      2
-                    )}`;
-                    window.open(`https://wa.me/1234567890?text=${mensaje}`, "_blank");
-                  }}
-                  style={botonWhatsApp}
-                  aria-label="Enviar pedido por WhatsApp"
-                >
-                  Ordenar por WhatsApp
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      <style jsx>{`
-        /* Ocultar scrollbar horizontal */
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none; /* IE and Edge */
-          scrollbar-width: none; /* Firefox */
-        }
-      `}</style>
     </>
   );
 }
-
