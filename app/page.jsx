@@ -119,6 +119,16 @@ export default function HomePage() {
     setIndiceVisibleCarrito(nuevoIndice);
   };
 
+  // Evita bloqueo de scroll vertical cuando se hace scroll horizontal (en móvil)
+  const handleWheel = (e, ref) => {
+    if (!ref.current) return;
+    const el = ref.current;
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      e.preventDefault();
+      el.scrollLeft += e.deltaX;
+    }
+  };
+
   // Abrir/cerrar modales
   const abrirModalProducto = (producto) => {
     setProductoSeleccionado(producto);
@@ -130,7 +140,6 @@ export default function HomePage() {
   };
   const abrirModalCarrito = () => setModalCarritoAbierto(true);
   const cerrarModalCarrito = () => setModalCarritoAbierto(false);
-
 
   const cardProducto = {
     backgroundColor: "rgba(255,255,255,0.1)",
@@ -280,7 +289,7 @@ export default function HomePage() {
     }
 
     if (isMobile) {
-      // Mostrar todos los productos en móvil con scroll horizontal y dots
+      // Mostrar 2 productos a la vez en móvil con scroll horizontal y sin dots
       const mostrarProductos = productos;
 
       return (
@@ -297,12 +306,12 @@ export default function HomePage() {
             alignItems: "center",
           }}
         >
-
           <h2 style={{ fontSize: "2rem", marginBottom: "1rem" }}>{titulo}</h2>
 
           <div
             ref={refsSecciones[key]}
             onScroll={() => onScrollHorizontal(key)}
+            onWheel={(e) => handleWheel(e, refsSecciones[key])}
             style={{
               display: "flex",
               overflowX: "auto",
@@ -319,7 +328,7 @@ export default function HomePage() {
                 key={producto.id}
                 style={{
                   ...cardProducto,
-                  minWidth: "100%",
+                  minWidth: "50%",
                   scrollSnapAlign: "center",
                 }}
                 onClick={() => abrirModalProducto(producto)}
@@ -371,44 +380,6 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-
-          {/* Dots indicadores */}
-          {mostrarProductos.length > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                marginTop: "0.75rem",
-                gap: "8px",
-              }}
-            >
-              {mostrarProductos.map((_, i) => (
-                <span
-                  key={i}
-                  style={{
-                    width: "10px",
-                    height: "10px",
-                    borderRadius: "50%",
-                    backgroundColor:
-                      indiceVisible[key] === i
-                        ? "#4cae33"
-                        : "rgba(255,255,255,0.4)",
-                    transition: "background-color 0.3s ease",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => {
-                    const contenedor = refsSecciones[key].current;
-                    if (!contenedor) return;
-                    contenedor.scrollTo({
-                      left: i * contenedor.clientWidth,
-                      behavior: "smooth",
-                    });
-                  }}
-                  aria-label={`Ir al producto ${i + 1}`}
-                />
-              ))}
-            </div>
-          )}
         </section>
       );
     }
@@ -606,9 +577,9 @@ export default function HomePage() {
             <p style={{ marginTop: "0.5rem" }}>{productoSeleccionado.descripcion}</p>
             <p
               style={{
+                marginTop: "0.5rem",
                 fontWeight: "700",
                 fontSize: "1.3rem",
-                marginTop: "0.75rem",
                 color: "#4cae33",
               }}
             >
@@ -620,15 +591,17 @@ export default function HomePage() {
                 cerrarModalProducto();
               }}
               style={{
+                marginTop: "1rem",
                 backgroundColor: "#4cae33",
                 color: "white",
                 border: "none",
                 borderRadius: "8px",
-                padding: "0.5rem 1rem",
+                padding: "0.75rem 1.5rem",
                 cursor: "pointer",
-                fontWeight: "600",
-                marginTop: "1rem",
+                fontWeight: "700",
+                fontSize: "1.1rem",
               }}
+              aria-label={`Añadir ${productoSeleccionado.nombre} al carrito`}
             >
               Añadir al carrito
             </button>
@@ -638,38 +611,49 @@ export default function HomePage() {
 
       {/* Modal Carrito */}
       {modalCarritoAbierto && (
-        <div style={modalFondo} onClick={cerrarModalCarrito} role="dialog" aria-modal="true">
+        <div
+          style={modalFondo}
+          onClick={cerrarModalCarrito}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Carrito de compras"
+        >
           <div
             style={{
               ...modalContenido,
-              maxWidth: isMobile ? "90vw" : "500px",
-              maxHeight: isMobile ? "70vh" : "80vh",
+              maxWidth: "400px",
+              maxHeight: "80vh",
+              padding: "1rem",
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
             }}
             onClick={(e) => e.stopPropagation()}
+            tabIndex={-1}
           >
             <button
               onClick={cerrarModalCarrito}
               style={cerrarBtn}
-              aria-label="Cerrar ventana del carrito"
+              aria-label="Cerrar carrito"
             >
               <FaTimes />
             </button>
-
+            <h2 style={{ marginBottom: "1rem" }}>Carrito de compras</h2>
             {carrito.length === 0 ? (
-              <p>No hay productos en el carrito.</p>
+              <p>Tu carrito está vacío.</p>
             ) : (
               <>
-                {/* Productos en carrito - scroll horizontal en móvil */}
                 <div
                   ref={refCarrito}
                   onScroll={onScrollCarrito}
                   style={{
                     display: "flex",
-                    overflowX: isMobile ? "auto" : "visible",
-                    scrollSnapType: isMobile ? "x mandatory" : "none",
+                    overflowX: "auto",
                     gap: "1rem",
+                    scrollSnapType: "x mandatory",
+                    paddingBottom: "1rem",
                     userSelect: "none",
-                    width: "100%",
+                    touchAction: "pan-x",
                   }}
                   className="no-scrollbar"
                 >
@@ -677,12 +661,12 @@ export default function HomePage() {
                     <div
                       key={item.id}
                       style={{
-                        position: "relative",
+                        minWidth: "80%",
+                        scrollSnapAlign: "center",
                         backgroundColor: "rgba(255,255,255,0.1)",
                         borderRadius: "12px",
                         padding: "1rem",
-                        minWidth: isMobile ? "100%" : "auto",
-                        scrollSnapAlign: isMobile ? "center" : "none",
+                        position: "relative",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
@@ -698,90 +682,48 @@ export default function HomePage() {
                       <Image
                         src={item.imagen}
                         alt={item.nombre}
-                        width={200}
-                        height={140}
+                        width={180}
+                        height={120}
                         style={{ objectFit: "contain", borderRadius: "8px" }}
                         priority
                       />
-                      <h3 style={{ marginTop: "0.5rem" }}>{item.nombre}</h3>
-                      <p>
-                        Cantidad: <strong>{item.cantidad}</strong>
-                      </p>
-                      <p>
-                        Precio unitario: ${item.precio.toFixed(2)}
-                      </p>
-                      <p style={{ fontWeight: "700", marginTop: "0.5rem" }}>
-                        Total: ${(item.precio * item.cantidad).toFixed(2)}
-                      </p>
+                      <h3>{item.nombre}</h3>
+                      <p>Cantidad: {item.cantidad}</p>
+                      <p>Precio unitario: ${item.precio.toFixed(2)}</p>
+                      <p>Subtotal: ${(item.precio * item.cantidad).toFixed(2)}</p>
                     </div>
                   ))}
                 </div>
 
-                {/* Indicadores puntitos carrito móvil */}
-                {isMobile && carrito.length > 1 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      marginTop: "0.75rem",
-                      gap: "8px",
-                    }}
-                  >
-                    {carrito.map((_, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          width: "10px",
-                          height: "10px",
-                          borderRadius: "50%",
-                          backgroundColor:
-                            indiceVisibleCarrito === i
-                              ? "#4cae33"
-                              : "rgba(255,255,255,0.4)",
-                          transition: "background-color 0.3s ease",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => {
-                          const contenedor = refCarrito.current;
-                          if (!contenedor) return;
-                          contenedor.scrollTo({
-                            left: i * contenedor.clientWidth,
-                            behavior: "smooth",
-                          });
-                        }}
-                        aria-label={`Ir al producto ${i + 1} del carrito`}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* Total general */}
-                <p
+                <div
                   style={{
+                    textAlign: "center",
                     fontWeight: "700",
                     fontSize: "1.2rem",
-                    marginTop: "1rem",
-                    color: "#4cae33",
                   }}
                 >
                   Total: ${totalPrecio.toFixed(2)}
-                </p>
+                </div>
 
                 <button
                   onClick={() => {
-                    let mensaje = "¡Hola! Quisiera hacer el siguiente pedido:\n";
-                    carrito.forEach((item) => {
-                      mensaje += `- ${item.nombre} x${item.cantidad}\n`;
-                    });
-                    const whatsappUrl = `https://wa.me/50493937936?text=${encodeURIComponent(
-                      mensaje
+                    const texto = carrito
+                      .map(
+                        (item) =>
+                          `${item.nombre} x${item.cantidad} = $${(
+                            item.precio * item.cantidad
+                          ).toFixed(2)}`
+                      )
+                      .join("%0A");
+                    const mensaje = `Hola, quiero hacer un pedido:%0A${texto}%0ATotal: $${totalPrecio.toFixed(
+                      2
                     )}`;
-                    window.open(whatsappUrl, "_blank");
+                    window.open(`https://wa.me/1234567890?text=${mensaje}`, "_blank");
                   }}
                   style={botonWhatsApp}
                   aria-label="Enviar pedido por WhatsApp"
                 >
-                  Enviar pedido por WhatsApp
+                  Ordenar por WhatsApp
                 </button>
               </>
             )}
@@ -789,16 +731,17 @@ export default function HomePage() {
         </div>
       )}
 
-      <style>{`
-        /* Esconde scrollbar horizontal en móviles */
+      <style jsx>{`
+        /* Ocultar scrollbar horizontal */
         .no-scrollbar::-webkit-scrollbar {
           display: none;
         }
         .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+          -ms-overflow-style: none; /* IE and Edge */
+          scrollbar-width: none; /* Firefox */
         }
       `}</style>
     </>
   );
 }
+
