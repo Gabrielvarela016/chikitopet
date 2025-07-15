@@ -111,7 +111,7 @@ export default function ProductosPage() {
     )}`;
     window.open(url, "_blank");
   };
-
+ 
   const abrirDetalleProducto = (producto) => {
     setProductoDetalle(producto);
   };
