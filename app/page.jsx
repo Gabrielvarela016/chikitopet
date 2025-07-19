@@ -404,7 +404,7 @@ export default function HomePage() {
                       margin: "0.5rem 0",
                     }}
                   >
-                    LPS{producto.precio.toFixed(2)}
+                    LPS {producto.precio.toFixed(2)}
                   </p>
                   <button
                     onClick={(e) => {
@@ -669,14 +669,14 @@ export default function HomePage() {
                     marginTop: "1rem",
                   }}
                 >
-                  Total: ${totalPrecio.toFixed(2)}
+                  Total: LPS {totalPrecio.toFixed(2)}
                 </p>
                 <a
                   href={`https://wa.me/50493937936?text=${encodeURIComponent(
                     `Hola, quiero hacer un pedido:\n${carrito
                       .map(
                         (item) =>
-                          `- ${item.nombre} x${item.cantidad} = $${(
+                          `- LPS {item.nombre} xLPS {item.cantidad} = $${(
                             item.precio * item.cantidad
                           ).toFixed(2)}`
                       )
@@ -733,7 +733,7 @@ export default function HomePage() {
                 marginTop: "0.5rem",
               }}
             >
-              LPS{productoSeleccionado.precio.toFixed(2)}
+              LPS {productoSeleccionado.precio.toFixed(2)}
             </p>
             <button
               onClick={() => {
