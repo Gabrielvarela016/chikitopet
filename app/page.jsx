@@ -404,7 +404,7 @@ export default function HomePage() {
                       margin: "0.5rem 0",
                     }}
                   >
-                    ${producto.precio.toFixed(2)}
+                    LPS{producto.precio.toFixed(2)}
                   </p>
                   <button
                     onClick={(e) => {
@@ -472,7 +472,7 @@ export default function HomePage() {
                     margin: "0.5rem 0",
                   }}
                 >
-                  ${producto.precio.toFixed(2)}
+                  LPS{producto.precio.toFixed(2)}
                 </p>
                 <button
                   onClick={(e) => {
@@ -680,7 +680,7 @@ export default function HomePage() {
                             item.precio * item.cantidad
                           ).toFixed(2)}`
                       )
-                      .join("\n")}\nTotal: $${totalPrecio.toFixed(2)}`
+                      .join("\n")}\nTotal: LPS{totalPrecio.toFixed(2)}`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -733,7 +733,7 @@ export default function HomePage() {
                 marginTop: "0.5rem",
               }}
             >
-              ${productoSeleccionado.precio.toFixed(2)}
+              LPS{productoSeleccionado.precio.toFixed(2)}
             </p>
             <button
               onClick={() => {
