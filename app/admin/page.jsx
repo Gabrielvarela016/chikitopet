@@ -563,7 +563,7 @@ export default function AdminPanel() {
                       color: "#2a5230",
                     }}
                   >
-                    L. {producto.precio.toFixed(2)}
+                    LPS. {producto.precio.toFixed(2)}
                   </p>
                 </div>
 
