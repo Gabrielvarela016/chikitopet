@@ -195,7 +195,6 @@ export default function HomePage() {
     0
   );
 
-  // Función renderProductos actualizada con los puntos decorativos móviles
   const renderProductos = (productos, loading, titulo, key) => {
     if (loading) {
       return (
@@ -212,7 +211,6 @@ export default function HomePage() {
             overflow: "visible",
           }}
         >
-          {/* Triángulo izquierdo */}
           <div
             aria-hidden="true"
             style={{
@@ -228,7 +226,6 @@ export default function HomePage() {
               zIndex: 1,
             }}
           />
-          {/* Triángulo derecho */}
           <div
             aria-hidden="true"
             style={{
@@ -266,7 +263,6 @@ export default function HomePage() {
             overflow: "visible",
           }}
         >
-          {/* Triángulo izquierdo */}
           <div
             aria-hidden="true"
             style={{
@@ -282,7 +278,6 @@ export default function HomePage() {
               zIndex: 1,
             }}
           />
-          {/* Triángulo derecho */}
           <div
             aria-hidden="true"
             style={{
@@ -305,7 +300,6 @@ export default function HomePage() {
       );
     }
 
-    // Aquí está la modificación: si es móvil, mostrar todos los productos; si no, mostrar según showAll o solo 4
     const mostrarProductos = isMobile
       ? productos
       : showAll[key]
@@ -326,7 +320,6 @@ export default function HomePage() {
           overflow: "visible",
         }}
       >
-        {/* Triángulo izquierdo */}
         <div
           aria-hidden="true"
           style={{
@@ -342,7 +335,6 @@ export default function HomePage() {
             zIndex: 1,
           }}
         />
-        {/* Triángulo derecho */}
         <div
           aria-hidden="true"
           style={{
@@ -472,7 +464,7 @@ export default function HomePage() {
                     margin: "0.5rem 0",
                   }}
                 >
-                  LPS{producto.precio.toFixed(2)}
+                  LPS {producto.precio.toFixed(2)}
                 </p>
                 <button
                   onClick={(e) => {
@@ -496,7 +488,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Botón Ver más sólo para escritorio */}
         {productos.length > 4 && !isMobile && (
           <div style={{ textAlign: "center", marginTop: "1rem" }}>
             <button
@@ -529,7 +520,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Puntos decorativos sólo en móvil */}
         {isMobile && (
           <div
             aria-hidden="true"
@@ -560,7 +550,6 @@ export default function HomePage() {
 
   return (
     <>
-      {/* Banner principal adaptativo */}
       <Image
         src={isMobile ? "/banner1-mobile.png" : "/banner1.png"}
         alt="Banner Chikito Pet"
@@ -570,7 +559,6 @@ export default function HomePage() {
         priority
       />
 
-      {/* Secciones de productos */}
       {renderProductos(comidaProductos, loading.comida, "Comida", "comida")}
       {renderProductos(
         medicamentosProductos,
@@ -579,7 +567,6 @@ export default function HomePage() {
         "medicamentos"
       )}
 
-      {/* GroomingSlider justo debajo de Medicamentos */}
       <GroomingSlider />
 
       {renderProductos(
@@ -595,7 +582,6 @@ export default function HomePage() {
         "mascota"
       )}
 
-              {/* Icono flotante carrito */}
       <div
         onClick={() => setModalCarritoAbierto(true)}
         style={iconoCarrito}
@@ -614,7 +600,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Modal carrito */}
       {modalCarritoAbierto && (
         <div
           style={modalFondo}
@@ -650,7 +635,7 @@ export default function HomePage() {
                         paddingRight: "2rem",
                       }}
                     >
-                      <strong>{item.nombre}</strong> x {item.cantidad} - $
+                      <strong>{item.nombre}</strong> x {item.cantidad} - LPS
                       {(item.precio * item.cantidad).toFixed(2)}
                       <button
                         style={botonEliminar}
@@ -676,11 +661,11 @@ export default function HomePage() {
                     `Hola, quiero hacer un pedido:\n${carrito
                       .map(
                         (item) =>
-                          `- LPS {item.nombre} xLPS {item.cantidad} = $${(
+                          `- ${item.nombre} x${item.cantidad} = LPS ${(
                             item.precio * item.cantidad
                           ).toFixed(2)}`
                       )
-                      .join("\n")}\nTotal: LPS{totalPrecio.toFixed(2)}`
+                      .join("\n")}\nTotal: LPS ${totalPrecio.toFixed(2)}`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -695,7 +680,6 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Modal producto individual */}
       {modalProductoAbierto && productoSeleccionado && (
         <div
           style={modalFondo}
