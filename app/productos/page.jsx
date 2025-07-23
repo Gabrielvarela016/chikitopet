@@ -40,6 +40,8 @@ export default function ProductosPage() {
   const sliderRef = useRef(null);
   const [paginaActual, setPaginaActual] = useState(0);
 
+  const [busqueda, setBusqueda] = useState("");
+
   const handleScroll = () => {
     if (!sliderRef.current) return;
     const scrollLeft = sliderRef.current.scrollLeft;
@@ -53,7 +55,7 @@ export default function ProductosPage() {
     // Reset página al cambiar filtros o productos filtrados
     setPaginaActual(0);
     if (sliderRef.current) sliderRef.current.scrollLeft = 0;
-  }, [categoriaSeleccionada, subcategoriaSeleccionada, productos]);
+  }, [categoriaSeleccionada, subcategoriaSeleccionada, productos, busqueda]);
 
   useEffect(() => {
     async function fetchProductos() {
@@ -80,10 +82,10 @@ export default function ProductosPage() {
   }, []);
 
   const productosFiltrados = productos.filter((p) => {
-    if (!categoriaSeleccionada) return true;
-    if (p.categoria !== categoriaSeleccionada) return false;
-    if (!subcategoriaSeleccionada) return true;
-    return p.subcategoria === subcategoriaSeleccionada;
+    if (categoriaSeleccionada && p.categoria !== categoriaSeleccionada) return false;
+    if (subcategoriaSeleccionada && p.subcategoria !== subcategoriaSeleccionada) return false;
+    if (busqueda && !p.nombre.toLowerCase().includes(busqueda.toLowerCase())) return false;
+    return true;
   });
 
   const handleAddToCart = (producto) => {
@@ -104,14 +106,14 @@ export default function ProductosPage() {
 
   const enviarWhatsApp = () => {
     const mensaje = carrito
-      .map((p) => `- ${p.nombre} x${p.cantidad} ($${(p.precio * p.cantidad).toFixed(2)})`)
+      .map((p) => `- ${p.nombre} x${p.cantidad} (Lps ${(p.precio * p.cantidad).toFixed(2)})`)
       .join("\n");
-    const url = `https://wa.me/50493937936?text=${encodeURIComponent(
+    const url = `https://wa.me/1234567890?text=${encodeURIComponent(
       "¡Hola! Quisiera hacer el siguiente pedido:\n" + mensaje
     )}`;
     window.open(url, "_blank");
   };
- 
+
   const abrirDetalleProducto = (producto) => {
     setProductoDetalle(producto);
   };
@@ -131,6 +133,25 @@ export default function ProductosPage() {
       </div>
 
       <h1 className="titulo">Catálogo de Productos</h1>
+
+      {/* BUSCADOR */}
+      <div style={{ margin: "1rem 0", textAlign: "center" }}>
+        <input
+          type="text"
+          placeholder="Buscar productos..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          style={{
+            padding: "0.5rem 1rem",
+            width: isMobile ? "90%" : "300px",
+            fontSize: "1rem",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+          }}
+          aria-label="Buscar productos"
+        />
+      </div>
+
       <div className="contenedor">
         {/* FILTRO LATERAL */}
         <aside className={isMobile ? "filtroMobile" : "filtroDesktop"}>
@@ -225,7 +246,7 @@ export default function ProductosPage() {
                     />
                     <h3>{prod.nombre}</h3>
                     <p className="desc">{prod.descripcion}</p>
-                    <p className="precio">${prod.precio.toFixed(2)}</p>
+                    <p className="precio">Lps {prod.precio.toFixed(2)}</p>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -284,7 +305,7 @@ export default function ProductosPage() {
               <div className="detalleTexto">
                 <h2>{productoDetalle.nombre}</h2>
                 <p>{productoDetalle.descripcion}</p>
-                <p className="precioDetalle">${productoDetalle.precio.toFixed(2)}</p>
+                <p className="precioDetalle">Lps {productoDetalle.precio.toFixed(2)}</p>
                 <button
                   onClick={() => {
                     handleAddToCart(productoDetalle);
@@ -324,26 +345,33 @@ export default function ProductosPage() {
               <FaTimes />
             </button>
             <h3 style={{ marginBottom: "1rem" }}>🛒 Mi Carrito</h3>
-            {carrito.map((item) => (
-              <div key={item.id} className="itemCarrito">
-                <span>
-                  {item.nombre} x{item.cantidad}
-                </span>
-                <span>${(item.precio * item.cantidad).toFixed(2)}</span>
-                <button
-                  onClick={() => handleRemoveFromCart(item.id)}
-                  className="botonEliminar"
-                  aria-label={`Eliminar ${item.nombre} del carrito`}
-                >
-                  ×
+
+            {carrito.length === 0 ? (
+              <p>No hay productos en el carrito.</p>
+            ) : (
+              <>
+                {carrito.map((item) => (
+                  <div key={item.id} className="itemCarrito">
+                    <span>
+                      {item.nombre} x{item.cantidad}
+                    </span>
+                    <span>Lps {(item.precio * item.cantidad).toFixed(2)}</span>
+                    <button
+                      onClick={() => handleRemoveFromCart(item.id)}
+                      className="botonEliminar"
+                      aria-label={`Eliminar ${item.nombre} del carrito`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <hr style={{ margin: "1rem 0" }} />
+                <p className="totalCarrito">Total: Lps {totalPrecio.toFixed(2)}</p>
+                <button onClick={enviarWhatsApp} className="botonWhatsApp">
+                  Enviar pedido por WhatsApp
                 </button>
-              </div>
-            ))}
-            <hr style={{ margin: "1rem 0" }} />
-            <p className="totalCarrito">Total: ${totalPrecio.toFixed(2)}</p>
-            <button onClick={enviarWhatsApp} className="botonWhatsApp">
-              Enviar pedido por WhatsApp
-            </button>
+              </>
+            )}
           </div>
         </div>
       )}
