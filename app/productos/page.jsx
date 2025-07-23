@@ -108,7 +108,7 @@ export default function ProductosPage() {
     const mensaje = carrito
       .map((p) => `- ${p.nombre} x${p.cantidad} (Lps ${(p.precio * p.cantidad).toFixed(2)})`)
       .join("\n");
-    const url = `https://wa.me/1234567890?text=${encodeURIComponent(
+    const url = `https://wa.me/50493937936?text=${encodeURIComponent(
       "¡Hola! Quisiera hacer el siguiente pedido:\n" + mensaje
     )}`;
     window.open(url, "_blank");
