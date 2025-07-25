@@ -17,7 +17,7 @@ const subcategoriasPorCategoria = {
   comida: ["Alimentos", "Snacks"],
   medicamentos: ["Desparasitante", "Vacunas"],
   jardineria: ["Semillas para Jardinería", "Sustrato", "Macetas"],
-  mascota: ["Ropa", "Juguetes", "Platos de comida"],
+  mascota: ["Ropa", "Juguetes", "Platos de comida", "Aseo"],
 };
 
 export default function AdminPanel() {
@@ -60,7 +60,7 @@ export default function AdminPanel() {
     return () => unsubscribe();
   }, [router]);
 
-  // Carga productos al iniciar y cuando cambie categoria (aunque cargamos todos)
+  // Carga productos al iniciar
   useEffect(() => {
     cargarProductos();
   }, []);
@@ -140,7 +140,7 @@ export default function AdminPanel() {
   };
 
   const borrarProducto = async (cat, id) => {
-    if (!confirm("¿Seguro que quieres borrar este producto?")) return;
+    if (!confirm("¿Seguro que quieres borrar este producto permanentemente?")) return;
     try {
       await deleteDoc(doc(db, cat, id));
       cargarProductos();
@@ -505,19 +505,21 @@ export default function AdminPanel() {
       {/* Listado productos por categoría */}
       {["comida", "medicamentos", "jardineria", "mascota"].map((cat) => (
         <section key={cat} style={{ marginBottom: "3.8rem" }}>
-          <h2
-            style={{
-              fontSize: "2rem",
-              fontWeight: "700",
-              marginBottom: "1rem",
-              borderBottom: "3px solid #2a5230",
-              paddingBottom: "0.3rem",
-              textTransform: "capitalize",
-              color: "#2a5230",
-            }}
-          >
-            {cat === "mascota" ? "Para tu mascota" : cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </h2>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+            <h2
+              style={{
+                fontSize: "2rem",
+                fontWeight: "700",
+                borderBottom: "3px solid #2a5230",
+                paddingBottom: "0.3rem",
+                textTransform: "capitalize",
+                color: "#2a5230",
+                margin: 0,
+              }}
+            >
+              {cat === "mascota" ? "Para tu mascota" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </h2>
+          </div>
 
           <ul
             style={{
@@ -548,7 +550,9 @@ export default function AdminPanel() {
                 }}
               >
                 <div style={{ maxWidth: "65%" }}>
-                  <strong style={{ fontSize: "1.25rem" }}>{producto.nombre}</strong>
+                  <strong style={{ fontSize: "1.25rem" }}>
+                    {producto.nombre}
+                  </strong>
                   <p style={{ margin: "0.4rem 0", fontSize: "0.95rem" }}>
                     {producto.descripcion}
                   </p>
@@ -563,7 +567,7 @@ export default function AdminPanel() {
                       color: "#2a5230",
                     }}
                   >
-                    LPS. {producto.precio.toFixed(2)}
+                    L. {producto.precio.toFixed(2)}
                   </p>
                 </div>
 
