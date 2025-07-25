@@ -33,12 +33,16 @@ export default function HomePage() {
     mascota: false,
   });
 
-  // Modal producto
   const [modalProductoAbierto, setModalProductoAbierto] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
-
-  // Modal carrito
   const [modalCarritoAbierto, setModalCarritoAbierto] = useState(false);
+
+  const truncarDescripcion = (texto, maxLineas = 3) => {
+    if (!texto) return "";
+    const lineas = texto.split('\n');
+    if (lineas.length <= maxLineas) return texto;
+    return lineas.slice(0, maxLineas).join('\n') + '...';
+  };
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -385,9 +389,13 @@ export default function HomePage() {
                       fontSize: "0.9rem",
                       textAlign: "center",
                       minHeight: "3rem",
+                      overflow: "hidden",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: "vertical"
                     }}
                   >
-                    {producto.descripcion}
+                    {truncarDescripcion(producto.descripcion)}
                   </p>
                   <p
                     style={{
@@ -453,9 +461,13 @@ export default function HomePage() {
                     fontSize: "0.9rem",
                     textAlign: "center",
                     minHeight: "3rem",
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical"
                   }}
                 >
-                  {producto.descripcion}
+                  {truncarDescripcion(producto.descripcion)}
                 </p>
                 <p
                   style={{
