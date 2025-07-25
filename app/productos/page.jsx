@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import { FaShoppingCart, FaTimes, FaChevronDown, FaChevronUp } from "react-icons/fa";
 
@@ -13,11 +13,16 @@ export default function ProductosPage() {
     comida: { label: "COMIDA", sub: ["Alimentos", "Snacks"] },
     medicamentos: { label: "MEDICAMENTOS", sub: ["Desparasitante", "Vacunas"] },
     jardineria: { label: "JARDINERÍA", sub: ["Semillas para Jardinería", "Sustrato", "Macetas"] },
-    mascota: { label: "PARA TU MASCOTA", sub: ["Ropa", "Juguetes", "Platos de comida"] },
+    mascota: { label: "PARA TU MASCOTA", sub: ["Ropa", "Juguetes", "Platos de comida", "Aseo"] },
   };
 
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [configuracion, setConfiguracion] = useState({
+    mostrarCarrito: true,
+    mostrarWhatsapp: true,
+    mostrarFiltros: true
+  });
 
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
   const [subcategoriaSeleccionada, setSubcategoriaSeleccionada] = useState(null);
@@ -58,6 +63,18 @@ export default function ProductosPage() {
   }, [categoriaSeleccionada, subcategoriaSeleccionada, productos, busqueda]);
 
   useEffect(() => {
+    // Suscripción a la configuración en tiempo real
+    const unsubscribeConfig = onSnapshot(doc(db, "configuracion", "principal"), (doc) => {
+      if (doc.exists()) {
+        const configData = doc.data();
+        setConfiguracion({
+          mostrarCarrito: configData.mostrarCarrito !== false,
+          mostrarWhatsapp: configData.mostrarWhatsapp !== false,
+          mostrarFiltros: configData.mostrarFiltros !== false
+        });
+      }
+    });
+
     async function fetchProductos() {
       setLoading(true);
       try {
@@ -71,6 +88,8 @@ export default function ProductosPage() {
           });
           todos = todos.concat(arr);
         }
+        // Ordenar productos alfabéticamente
+        todos.sort((a, b) => a.nombre.localeCompare(b.nombre));
         setProductos(todos);
       } catch (error) {
         console.error("Error cargando productos:", error);
@@ -79,6 +98,10 @@ export default function ProductosPage() {
       }
     }
     fetchProductos();
+
+    return () => {
+      unsubscribeConfig(); // Limpiar suscripción al desmontar
+    };
   }, []);
 
   const productosFiltrados = productos.filter((p) => {
@@ -108,7 +131,7 @@ export default function ProductosPage() {
     const mensaje = carrito
       .map((p) => `- ${p.nombre} x${p.cantidad} (Lps ${(p.precio * p.cantidad).toFixed(2)})`)
       .join("\n");
-    const url = `https://wa.me/50493937936?text=${encodeURIComponent(
+    const url = `https://wa.me/1234567890?text=${encodeURIComponent(
       "¡Hola! Quisiera hacer el siguiente pedido:\n" + mensaje
     )}`;
     window.open(url, "_blank");
@@ -120,6 +143,13 @@ export default function ProductosPage() {
 
   const cerrarDetalleProducto = () => {
     setProductoDetalle(null);
+  };
+
+  // Función para truncar la descripción a 3 líneas
+  const truncarDescripcion = (desc) => {
+    if (!desc) return "";
+    const lineas = desc.split('\n');
+    return lineas.slice(0, 3).join('\n') + (lineas.length > 3 ? '...' : '');
   };
 
   return (
@@ -154,61 +184,63 @@ export default function ProductosPage() {
 
       <div className="contenedor">
         {/* FILTRO LATERAL */}
-        <aside className={isMobile ? "filtroMobile" : "filtroDesktop"}>
-          <h2>Filtrar por</h2>
-          {Object.entries(categorias).map(([key, cat]) => (
-            <div key={key} style={{ marginBottom: "1rem" }}>
-              <div
-                onClick={() => {
-                  if (isMobile) {
-                    toggleFiltro(key);
-                    setCategoriaSeleccionada(key === categoriaSeleccionada ? null : key);
-                    setSubcategoriaSeleccionada(null);
-                  } else {
-                    setCategoriaSeleccionada(key === categoriaSeleccionada ? null : key);
-                    setSubcategoriaSeleccionada(null);
-                  }
-                }}
-                className="filtroTitulo"
-              >
-                {cat.label}
-                {isMobile && (filtrosAbiertos[key] ? <FaChevronUp /> : <FaChevronDown />)}
+        {configuracion.mostrarFiltros && (
+          <aside className={isMobile ? "filtroMobile" : "filtroDesktop"}>
+            <h2>Filtrar por</h2>
+            {Object.entries(categorias).map(([key, cat]) => (
+              <div key={key} style={{ marginBottom: "1rem" }}>
+                <div
+                  onClick={() => {
+                    if (isMobile) {
+                      toggleFiltro(key);
+                      setCategoriaSeleccionada(key === categoriaSeleccionada ? null : key);
+                      setSubcategoriaSeleccionada(null);
+                    } else {
+                      setCategoriaSeleccionada(key === categoriaSeleccionada ? null : key);
+                      setSubcategoriaSeleccionada(null);
+                    }
+                  }}
+                  className="filtroTitulo"
+                >
+                  {cat.label}
+                  {isMobile && (filtrosAbiertos[key] ? <FaChevronUp /> : <FaChevronDown />)}
+                </div>
+                {(isMobile ? filtrosAbiertos[key] : categoriaSeleccionada === key) && (
+                  <ul className="listaSubfiltros">
+                    {cat.sub.map((sub) => (
+                      <li
+                        key={sub}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSubcategoriaSeleccionada(sub === subcategoriaSeleccionada ? null : sub);
+                          if (isMobile) setFiltrosAbiertos((prev) => ({ ...prev, [key]: true }));
+                        }}
+                        className={subcategoriaSeleccionada === sub ? "subFiltroItem activo" : "subFiltroItem"}
+                      >
+                        {sub}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-              {(isMobile ? filtrosAbiertos[key] : categoriaSeleccionada === key) && (
-                <ul className="listaSubfiltros">
-                  {cat.sub.map((sub) => (
-                    <li
-                      key={sub}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSubcategoriaSeleccionada(sub === subcategoriaSeleccionada ? null : sub);
-                        if (isMobile) setFiltrosAbiertos((prev) => ({ ...prev, [key]: true }));
-                      }}
-                      className={subcategoriaSeleccionada === sub ? "subFiltroItem activo" : "subFiltroItem"}
-                    >
-                      {sub}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
+            ))}
 
-          {(categoriaSeleccionada || subcategoriaSeleccionada) && (
-            <button
-              onClick={() => {
-                setCategoriaSeleccionada(null);
-                setSubcategoriaSeleccionada(null);
-              }}
-              className="btnLimpiarFiltros"
-            >
-              Limpiar filtros
-            </button>
-          )}
-        </aside>
+            {(categoriaSeleccionada || subcategoriaSeleccionada) && (
+              <button
+                onClick={() => {
+                  setCategoriaSeleccionada(null);
+                  setSubcategoriaSeleccionada(null);
+                }}
+                className="btnLimpiarFiltros"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </aside>
+        )}
 
         {/* PRODUCTOS */}
-        <main className="mainCatalogo">
+        <main className="mainCatalogo" style={!configuracion.mostrarFiltros ? { marginLeft: '0' } : {}}>
           {loading ? (
             <div className="loaderContainer">
               <div className="loader"></div>
@@ -245,7 +277,15 @@ export default function ProductosPage() {
                       style={{ cursor: "pointer" }}
                     />
                     <h3>{prod.nombre}</h3>
-                    <p className="desc">{prod.descripcion}</p>
+                    <p className="desc" style={{ 
+                      whiteSpace: 'pre-line',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
+                      {truncarDescripcion(prod.descripcion)}
+                    </p>
                     <p className="precio">Lps {prod.precio.toFixed(2)}</p>
                     <button
                       onClick={(e) => {
@@ -304,7 +344,7 @@ export default function ProductosPage() {
               />
               <div className="detalleTexto">
                 <h2>{productoDetalle.nombre}</h2>
-                <p>{productoDetalle.descripcion}</p>
+                <p style={{ whiteSpace: 'pre-line' }}>{productoDetalle.descripcion}</p>
                 <p className="precioDetalle">Lps {productoDetalle.precio.toFixed(2)}</p>
                 <button
                   onClick={() => {
@@ -322,7 +362,7 @@ export default function ProductosPage() {
       )}
 
       {/* BOTÓN CARRITO FLOTANTE */}
-      {carrito.length > 0 && (
+      {configuracion.mostrarCarrito && carrito.length > 0 && (
         <button
           onClick={() => setModalCarritoAbierto(true)}
           className="botonCarritoFlotante"
@@ -367,9 +407,11 @@ export default function ProductosPage() {
                 ))}
                 <hr style={{ margin: "1rem 0" }} />
                 <p className="totalCarrito">Total: Lps {totalPrecio.toFixed(2)}</p>
-                <button onClick={enviarWhatsApp} className="botonWhatsApp">
-                  Enviar pedido por WhatsApp
-                </button>
+                {configuracion.mostrarWhatsapp && (
+                  <button onClick={enviarWhatsApp} className="botonWhatsApp">
+                    Enviar pedido por WhatsApp
+                  </button>
+                )}
               </>
             )}
           </div>
