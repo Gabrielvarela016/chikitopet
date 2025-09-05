@@ -213,7 +213,7 @@ export default function GroomingPage() {
       {/* Botón final */}
       <div style={{ textAlign: "center", margin: "3rem 0" }}>
         <a
-          href="https://calendly.com/chikiotogrooming/grooming"
+          href="https://calendly.com/chikiotogrooming/nueva-reunion"
           target="_blank"
           rel="noopener noreferrer"
           style={{
