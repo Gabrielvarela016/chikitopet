@@ -56,7 +56,7 @@ export default function GroomingSlider() {
         }}
       >
         <a
-          href="https://calendly.com/chikiotogrooming/grooming"
+          href="https://calendly.com/chikiotogrooming/nueva-reunion"
           target="_blank"
           rel="noopener noreferrer"
           style={{
